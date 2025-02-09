@@ -7,7 +7,7 @@ urlpatterns = [
     path('api/v1/director', views.director_list_api_view),
     path('api/v1/director/<int:id>/', views.director_detail_api_view),
 
-    path('api/v1/movie', views.movie_list_api_view),
+    path('api/v1/movie/review', views.movie_list_api_view),
     path('api/v1/movie/<int:id>/', views.movie_detail_api_view),
 
     path('api/v1/review', views.review_list_api_view),
