@@ -21,10 +21,10 @@ def director_detail_api_view(request, id):
 
 
 
-
 @api_view(['GET'])
 def movie_list_api_view(request):
-    movies = Movie.objects.all()
+    movies = (Movie.objects.
+              prefetch_related('review').all())
     data = MovieSerializer(movies, many=True).data
     return Response(data={'list': data})
 
