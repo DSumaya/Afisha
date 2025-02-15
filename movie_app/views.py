@@ -1,5 +1,3 @@
-from django.core.serializers import serialize
-from django.db.migrations.serializer import Serializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
