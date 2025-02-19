@@ -7,6 +7,7 @@ from movie_app.serializers import (DirectorSerializer, MovieSerializer, ReviewSe
 
 @api_view(['GET', 'POST'])
 def director_list_api_view(request):
+    print(request.user)
     if request.method == 'GET':
         directors = Director.objects.all()
         data = DirectorSerializer(directors, many=True).data

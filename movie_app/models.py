@@ -25,11 +25,11 @@ class Movie(models.Model):
 
 class Review(models.Model):
     STARS_CHOICE = (
-        ('⭐', '⭐'),
-        ('⭐⭐', '⭐⭐'),
-        ('⭐⭐⭐', '⭐⭐⭐'),
-        ('⭐⭐⭐⭐', '⭐⭐⭐⭐'),
-        ('⭐⭐⭐⭐⭐', '⭐⭐⭐⭐⭐'),
+        (1, '⭐'),
+        (2, '⭐⭐'),
+        (3, '⭐⭐⭐'),
+        (4, '⭐⭐⭐⭐'),
+        (5, '⭐⭐⭐⭐⭐'),
     )
     stars = models.PositiveSmallIntegerField(choices=STARS_CHOICE, default=1, verbose_name="Оценка")
     text = models.TextField(null=True, blank=True)
