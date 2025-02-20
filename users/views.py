@@ -11,9 +11,18 @@ from rest_framework.authtoken.models import Token
 @api_view(['POST'])
 def confirm_user(request):
     serializer = ConfirmUserSerializer(data=request.data)
-    if serializer.is_valid():
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.is_valid(raise_exception=True)
+
+    username = serializer.validated_data.get('username')
+    password = serializer.validated_data.get('password')
+    is_active = serializer.validated_data.get('is_active')
+    user = User.objects.create_user(username=username, password=password, is_active=is_active)
+
+    return Response(data=ConfirmUserSerializer(user).data,
+                    status=status.HTTP_400_BAD_REQUEST,)
+
+    # return Response(serializer.validated_data, status=status.HTTP_200_OK)
+    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

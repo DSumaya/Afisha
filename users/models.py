@@ -3,7 +3,6 @@ import random
 
 class User(models.Model):
     username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
     is_active = models.BooleanField(default=False)
 
@@ -12,7 +11,7 @@ class User(models.Model):
 
 """Модель для хранения кода подтверждения для пользователя"""
 class ConfirmUser(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, default=1, related_name="confirmation_code")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, default=1, related_name="confirm_code")
     code = models.CharField(max_length=6, null=True)
 
 
@@ -23,4 +22,4 @@ class ConfirmUser(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Code for {self.user.username}: {self.code}"
+        return f"Code for {self.user}: {self.code}"
