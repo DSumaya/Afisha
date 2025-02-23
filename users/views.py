@@ -1,61 +1,69 @@
-from  rest_framework.decorators import api_view
+import Token
+from django.contrib.auth import authenticate
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
-from users.serializers import RegisterSerializers, AuthSerializers, ConfirmUserSerializer
-from django.contrib.auth import authenticate
-from rest_framework.authtoken.models import Token
+import random
+from . import serializers, models
+from django.core.mail import send_mail
+
+class RegisterView(APIView):
+    def post(self, request):
+        serializer = serializers.RegisterSerializers(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(
+            username=serializer.validated_data.get('username'),
+            email=serializer.validated_data.get('email'),
+            password=serializer.validated_data.get('password'),
+            is_active=False
+        )
+
+        code = ''.join([str(random.randint(0, 9)) for i in range(6)])
+        models.ConfirmUser.objects.create(code=code, user=user)
+
+        send_mail(
+            'Registration code',
+            message=f'Your registration code is: {code}',
+            from_email='<EMAIL>',
+            recipient_list=[user.email],
+        )
+
+        return Response({'user_id': user.id}, status=status.HTTP_201_CREATED)
 
 
-"""Подтверждение регистрации пользователя"""
-@api_view(['POST'])
-def confirm_user(request):
-    serializer = ConfirmUserSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+class AuthAPIView(APIView):
+    def post(self, request):
+        serializer = serializers.AuthSerializers(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    username = serializer.validated_data.get('username')
-    password = serializer.validated_data.get('password')
-    is_active = serializer.validated_data.get('is_active')
-    user = User.objects.create_user(username=username, password=password, is_active=is_active)
+        user = authenticate(**serializer.validated_data)
+        if user:
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response(data={'token': token.key}, status=status.HTTP_200_OK)
 
-    return Response(data=ConfirmUserSerializer(user).data,
-                    status=status.HTTP_400_BAD_REQUEST,)
-
-    # return Response(serializer.validated_data, status=status.HTTP_200_OK)
-    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_401_UNAUTHORIZED, data={'message': 'Invalid credentials'})
 
 
+class ConfirmUserAPIView(APIView):
+    def post(self, request):
+        serializer = serializers.ConfirmUserSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-"""Авторизация"""
-@api_view(['POST'])
-def authorization_api_view(request):
-    serializer = AuthSerializers(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    username = serializer.validated_data.get('username')
-    password = serializer.validated_data.get('password')
-
-    user = authenticate(username=username, password=password)
-
-    if user:
+        sms_code_value = serializer.validated_data.get('sms_code')
         try:
-            token = Token.objects.get(user=user)
-        except:
-            token = Token.objects.create(user=user)
-        return Response(data={'key': token.key})
-    return Response(status=status.HTTP_401_UNAUTHORIZED,
-                    data={'error': 'User credentials are wrong!'})
+            sms_code = models.ConfirmUser.objects.get(code=sms_code_value)
+        except models.ConfirmUser.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={'message': 'Code not found'})
+
+        sms_code.user.is_active = True
+        sms_code.user.save()
+        sms_code.delete()
+
+        return Response(status=status.HTTP_200_OK)
 
 
-"""Регистрация"""
-@api_view(['POST'])
-def registration_api_view(request):
-    serializer = RegisterSerializers(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    username = request.data.get('username')
-    password = request.data.get('password')
-
-    user = User.objects.create_user(username=username, password=password)
-
-    return Response(status=status.HTTP_201_CREATED, data={'user_id': user.id})

@@ -2,13 +2,13 @@ from django.urls import path
 from movie_app import views
 
 urlpatterns = [
-    path('director/', views.director_list_api_view),
-    path('director/<int:id>/', views.director_detail_api_view),
+    path('director/', views.DirectorListAPIView.as_view(), name='director-list'),
+    path('director/<int:id>/', views.DirectorDetailAPIView.as_view(), name='director-detail'),
 
-    path('movie/', views.movie_list_api_view),
-    path('movie/<int:id>/', views.movie_detail_api_view),
+    path('movie/', views.MovieListAPIView.as_view(), name='movie-list'),
+    path('movie/<int:id>/', views.MovieDetailAPIView.as_view(), name='movie-detail'),
 
-    path('review/', views.review_list_api_view),
-    path('reviews/<int:id>/', views.review_detail_api_view),
+    path('review/', views.ReviewListAPIView.as_view(), name='review-list'),
+    path('review/<int:id>/', views.ReviewDetailAPIView.as_view(), name='review-detail'),
 
 ]
