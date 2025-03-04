@@ -1,0 +1,74 @@
+version: '3'
+services:
+  afisha:
+    build:
+      context:
+    command: sh -c " python manage.py runserver 0.0.0.0:8000"
+    posts:
+      - "8000:8000"
+    depends_on:
+      - db_afisha
+    db_afisha:
+      image: 'postgres:14'
+      environment:
+        POSTGRES_DB: db_afisha
+        POSTGRES_USER: db_user
+        POSTGRES_PASSWORD: 0903
+      volumes:
+        - "db_afisha_data:/var/lib/postgresql/data"
+      ports:
+        - "5432:5432"
+volumes:
+  db_afisha_data:
+
+
+
+
+
+
+
+
+
+
+
+
+
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: db_afisha
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: 0903
+    volumes:
+      - "db_afisha_data:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    container_name: django_app
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DATABASE_NAME=mydatabase
+      - DATABASE_USER=myuser
+      - DATABASE_PASSWORD=mypassword
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+volumes:
+  postgres_data:
